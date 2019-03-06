@@ -1,0 +1,57 @@
+<div class="ui container">
+  <div class="ui grid">
+    <div class="left floated five wide column">
+      <h1 class="ui header">{name} News</h1>
+    </div>
+    <div class="right floated five wide column">
+      <div class="ui fluid {search ? 'loading' : ''} search">
+        <div class="ui icon input">
+          <input
+            class="prompt"
+            type="text"
+            placeholder="Search news..."
+            on:keyup="search(event)"
+          />
+          <i class="search icon"></i>
+        </div>
+        <div class="results"></div>
+      </div>
+    </div>
+  </div>
+  <NewsList :articles></NewsList>
+</div>
+
+<script>
+  import NewsList from "./NewsList.html";
+  const apiKey = "a6ff111546c0411f9228e774270964e3";
+  const API_URL =
+    "https://newsapi.org/v2/everything?sortBy=publishedAt&apiKey=" + apiKey;
+
+  export default {
+    oncreate() {
+      this.newsData();
+    },
+    methods: {
+      async newsData(query = "detik") {
+        const { articles } = await (await fetch(
+          `${API_URL}&q=${query}`
+        )).json();
+        // console.log(articles);
+        this.set({ name: "Detik", articles, search: false });
+      },
+      search(e) {
+        if (e.keyCode === 13) {
+          this.set({ articles: undefined, search: true });
+          this.newsData(e.target.value || "detik");
+        }
+      }
+    },
+    components: { NewsList }
+  };
+</script>
+
+<style>
+  :global(#root) {
+    margin-top: 1em;
+  }
+</style>

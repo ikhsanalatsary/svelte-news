@@ -1,0 +1,42 @@
+{#if articles && articles.length > 0}
+<div class="ui link cards">
+  {#each articles as article}
+  <div class="ui card" on:click="openLink(article.url)">
+    <div class="image">
+      <img
+        src="{article.urlToImage || 'https://semantic-ui.com/images/wireframe/image.png'}"
+      />
+    </div>
+    <div class="content">
+      <a class="header">{article.title}</a>
+      <div class="meta">
+        <span class="date"
+          >{new Date(article.publishedAt).toLocaleString()}</span
+        >
+      </div>
+      <div class="description">{article.description}</div>
+    </div>
+    <div class="extra content">
+      <a> <i class="user icon"></i>{article.source.name}</a>
+    </div>
+  </div>
+  {/each}
+</div>
+{:elseif articles && articles.length === 0}
+<div class="ui message">
+  <div class="header">Data not found</div>
+  <p>Try to key in with different key.</p>
+</div>
+{:else}
+<div class="ui active centered inline loader" style="margin-top: 100px"></div>
+{/if}
+
+<script>
+  export default {
+    methods: {
+      openLink(url) {
+        window.open(url, "__blank");
+      }
+    }
+  };
+</script>

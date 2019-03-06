@@ -1,0 +1,11 @@
+{
+  "name": "svelte-news",
+  "version": "1.0.0",
+  "description": "News list with svelte",
+  "keywords": [],
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "svelte": "2.11.0"
+  }
+}
