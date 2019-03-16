@@ -8,7 +8,7 @@
       <h1 class="ui header">{name} News</h1>
     </div>
     <div class="right floated five wide column">
-      <div class="ui fluid {search ? 'loading' : ''} search">
+      <div class="ui fluid {isSearch ? 'loading' : ''} search">
         <div class="ui icon input">
           <input
             class="prompt"
@@ -22,7 +22,10 @@
       </div>
     </div>
   </div>
-  <NewsList :articles></NewsList>
+  <NewsList :articles :count></NewsList>
+  {#if fetching}
+    <div class="ui active centered inline loader" style="margin-top: 20px"></div>
+  {/if}
 </div>
 
 <script>
@@ -30,22 +33,62 @@
   const apiKey = "a6ff111546c0411f9228e774270964e3";
   const API_URL =
     "https://newsapi.org/v2/everything?sortBy=publishedAt&apiKey=" + apiKey;
+  let _throttleTimer = null;
+  let _throttleDelay = 100;
+  function onwindowscroll(event) {
+    clearTimeout(_throttleTimer);
+    _throttleTimer = setTimeout(() => {
+      let { currentPage, fetching, articles, count } = this.get();
+      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight &&
+        articles.length && currentPage !== count.length && !fetching) {
+        let nextPage = currentPage + 1;
+        this.set({
+          y: this.pageYOffset,
+          currentPage: nextPage,
+          fetching: true
+        });
+        let page
+        if (currentPage === 1) {
+          page = 2
+          this.set({ currentPage: 2, fetching: true })
+        } else {
+          page = nextPage
+        }
+      }
+    }, _throttleDelay);
+  }
 
   export default {
     oncreate() {
       this.newsData();
+      window.addEventListener("scroll", onwindowscroll.bind(this));
+    },
+    async onupdate({ changed, current, previous }) {
+      let { articles, count, search } = current;
+      if (previous && previous.currentPage !== current.currentPage && current.currentPage > previous.currentPage) {
+        let data = [...articles];
+        let result = await this.newsData(search, current.currentPage, true)
+        if (result && result.articles) {
+          data.push(...result.articles)
+          this.set({ fetching: false, articles: data, count: result.count })
+        }
+      }
+      
     },
     methods: {
-      async newsData(query = "detik") {
-        const { articles } = await (await fetch(
-          `${API_URL}&q=${query}`
+      async newsData(query = "detik", page = 1, paginate) {
+        const { articles, totalResults } = await (await fetch(
+          `${API_URL}&q=${query}&page=${page}`
         )).json();
-        // console.log(articles);
-        this.set({ name: "Detik", articles, search: false });
+        let count = Array.from({ length: totalResults }).map(function(_, i) {
+          return i + 1;
+        });
+        if (paginate) return { articles, count }
+        this.set({ name: "Detik", articles, search: query, isSearch: false, count });
       },
       search(e) {
         if (e.keyCode === 13) {
-          this.set({ articles: undefined, search: true });
+          this.set({ articles: undefined, search: e.target.value, isSearch: true });
           this.newsData(e.target.value || "detik");
         }
       }
@@ -55,6 +98,11 @@
 </script>
 
 <style>
+  :global(body) {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+  }
   :global(#root) {
     padding-top: 1em;
   }
