@@ -10,3 +10,5 @@ const app = new HelloWorld({
     search: false
   }
 });
+
+export default app;
