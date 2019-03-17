@@ -2,7 +2,6 @@
 import HelloWorld from "./HelloWorld.html";
 // import "semantic-ui-less/semantic.less";
 
-let window_updating = false;
 const app = new HelloWorld({
   target: document.getElementById("root"),
   data: {
